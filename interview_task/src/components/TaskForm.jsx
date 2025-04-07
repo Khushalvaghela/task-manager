@@ -8,20 +8,43 @@ import {
   CardContent,
   Typography,
 } from "@mui/material";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
-export default function TaskForm() {
+import { styled } from "@mui/system";
+import { blue, purple } from "@mui/material/colors";
+
+const CustomDatePicker = styled(DatePicker)({
+  backgroundColor: blue[50],
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+  padding: "10px",
+  width: "100%",
+  "&:focus": {
+    borderColor: purple[600],
+  },
+  ".react-datepicker__triangle": {
+    borderTopColor: blue[50],
+  },
+});
+
+export default function TaskForm({ onTaskCreated }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
-  const [validity, setValidity] = useState("");
+  const [date, setDate] = useState(null);
+  const [validityTime, setValidityTime] = useState("");
   const [assignedUsers, setAssignedUsers] = useState([]);
   const [users, setUsers] = useState([]);
-
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const currentUserId = currentUser ? currentUser.id : null;
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const usersData = await getUsers();
-        setUsers(usersData);
+        const filteredUsers = usersData.filter(
+          (user) => user._id !== currentUserId && user.role !== "admin"
+        );
+        setUsers(filteredUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -31,32 +54,38 @@ export default function TaskForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const [hours, minutes] = validityTime.split(":").map(Number);
+    const totalMinutes = (hours || 0) * 60 + (minutes || 0);
     await createTask({
       title,
       description,
       date,
-      validity,
+      validity: totalMinutes,
       assignedUsers: assignedUsers.map((user) => user._id),
     });
 
     setTitle("");
     setDescription("");
-    setDate("");
-    setValidity("");
+    setDate(null);
+    // setValidity("");
+    setValidityTime("");
     setAssignedUsers([]);
+    if (onTaskCreated) {
+      onTaskCreated();
+    }
   };
-
+  const today = new Date();
   return (
-    <Card className="max-w-2xl mx-auto mt-10 shadow-xl rounded-lg">
+    <Card className="max-w-2xl mx-auto mt-10 shadow-xl rounded-lg bg-gradient-to-r from-indigo-500 to-blue-600 p-6">
       <CardContent>
         <Typography
           variant="h5"
-          className="text-center font-bold text-blue-700 mb-4"
+          className="text-center font-bold text-white mb-6"
         >
           Create New Task
         </Typography>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-8">
-          <div className="mb-4">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          <div>
             <TextField
               label="Task Title"
               variant="outlined"
@@ -64,9 +93,10 @@ export default function TaskForm() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              sx={{ borderRadius: 3 }}
             />
           </div>
-          <div className="mb-4">
+          <div>
             <TextField
               label="Description"
               variant="outlined"
@@ -76,35 +106,42 @@ export default function TaskForm() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
+              sx={{ borderRadius: 3 }}
             />
           </div>
-          <div className="mb-4">
-            <TextField
-              type="date"
-              fullWidth
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+          <div style={{ position: "relative" }}>
+            <CustomDatePicker
+              selected={date}
+              onChange={(date) => setDate(date)}
+              dateFormat="MMMM d, yyyy"
+              placeholderText="Select Due Date"
               required
-            />
-          </div>
-          <div className="mb-4">
-            <TextField
-              type="number"
-              label="Validity (Days)"
-              variant="outlined"
-              fullWidth
-              value={validity}
-              onChange={(e) => setValidity(e.target.value)}
-              required
+              minDate={new Date()}
+              popperClassName="custom-datepicker-popper"
             />
           </div>
 
-          <div className="mb-6">
+          <div>
+            <TextField
+              type="time"
+              label="Validity Time"
+              variant="outlined"
+              fullWidth
+              value={validityTime}
+              onChange={(e) => setValidityTime(e.target.value)}
+              required
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ step: 300 }} 
+            />
+          </div>
+
+          <div>
             <Autocomplete
               multiple
               options={users}
               getOptionLabel={(user) => user.name}
               value={assignedUsers}
+              required
               onChange={(event, newValue) => setAssignedUsers(newValue)}
               renderInput={(params) => (
                 <TextField
@@ -115,16 +152,23 @@ export default function TaskForm() {
               )}
             />
           </div>
+
           <Button
             type="submit"
             variant="contained"
             fullWidth
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500 text-white py-3 rounded-md shadow-md transition-all duration-300"
+            className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-teal-500 hover:to-green-500 text-white py-3 rounded-md shadow-md transition-all duration-300"
           >
             Create Task
           </Button>
         </form>
       </CardContent>
+      <style>{`
+        .custom-datepicker-popper {
+          
+          z-index: 9999 !important;
+        }
+      `}</style>
     </Card>
   );
 }

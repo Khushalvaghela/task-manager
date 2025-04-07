@@ -80,7 +80,7 @@ export default function Register() {
         </p>
       </div>
 
-      {/* Snackbar for Notifications */}
+     
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}

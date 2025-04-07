@@ -6,6 +6,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import { NotificationProvider } from "./contax/NotificationContext";
+import UserManagement from "./pages/UserManagement";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -23,7 +25,8 @@ function Layout({ children }) {
 }
 
 function App() {
-  return (
+  return (  
+    <NotificationProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
@@ -48,8 +51,19 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/userManagement"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserManagement/>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
+    </NotificationProvider>
   );
 }
 

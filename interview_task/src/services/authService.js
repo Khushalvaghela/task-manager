@@ -15,5 +15,14 @@ export const loginUser = async (email, password) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  return res.json();
+
+  const data = await res.json();
+
+  if (!res.ok) {
+   
+    throw new Error(data.message || "Something went wrong");
+  }
+
+  
+  return data;
 };

@@ -14,9 +14,18 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    try{
     const data = await loginUser(email, password);
     if (data.token) {
       localStorage.setItem("token", data.token);
+      const userData = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role, 
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData)); 
       setSnackbarMessage("Login successful!");
       setSnackbarType("success");
       setOpenSnackbar(true);
@@ -26,7 +35,11 @@ export default function Login() {
       setSnackbarType("error");
       setOpenSnackbar(true);
     }
-  };
+  }catch(error){
+    setSnackbarMessage(error.message || "Invalid email or password!");
+    setSnackbarType("error");
+    setOpenSnackbar(true);
+  }}
 
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 to-indigo-500">
@@ -70,7 +83,7 @@ export default function Login() {
         </p>
       </div>
 
-      {/* Snackbar for Notifications */}
+   
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}

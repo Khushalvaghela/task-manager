@@ -16,7 +16,15 @@ const TaskSchema = new mongoose.Schema({
   ],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   isCompleted: { type: Boolean, default: false },
-  completedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
+  completedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  notifications: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      message: { type: String },
+      read: { type: Boolean, default: false },
+      timestamp: { type: Date, default: Date.now },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Task", TaskSchema);
